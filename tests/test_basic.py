@@ -1,6 +1,7 @@
 """平台无关的单元测试：python -m unittest discover -s tests"""
 
 import base64
+import hashlib
 import json
 import os
 import socket
@@ -10,7 +11,7 @@ from pathlib import Path
 
 from gmssl import sm3
 
-from sgcc import api, cli, config, crypto, login
+from sgcc import api, cli, config, crypto, login, offline
 
 SAMPLE = {
     "data": {
@@ -83,6 +84,34 @@ class TestSessionUpdate(unittest.TestCase):
             uid = s["headers"]["userid"]
             self.assertEqual(base64.b64decode(b64).decode(), f"{uid}_99tnew")
             self.assertIn("captured_at", s)
+
+
+class TestOffline(unittest.TestCase):
+    def test_usc_info_keeps_server_field_names(self):
+        # 服务端认厂商拼错的 devcice*，改成 deviceIp/deviceId 会被拒
+        self.assertEqual(
+            set(offline.usc_info()),
+            {"isEncrypt", "devciceIp", "devciceId", "tenant", "member"},
+        )
+
+    def test_param_md5(self):
+        want = hashlib.md5('a"x"b1'.encode("utf-8")).hexdigest()
+        self.assertEqual(offline._param_md5({"b": 1, "a": "x"}), want)
+
+    def test_apply_token_sets_expiry(self):
+        s = json.loads(json.dumps(SESSION))
+        uid = "99u00000000000000000000000000000001"
+        bizrt = {
+            "token": "99tnew",
+            "expirationDate": "202611111737",
+            "userInfo": {"userId": uid},
+        }
+        offline.apply_token(s, bizrt)
+        self.assertEqual(s["headers"]["t"], "99tnew")
+        self.assertEqual(s["headers"]["userid"], uid)
+        self.assertEqual(s["expires_at"], "2026-11-11 17:37")
+        b64 = s["headers"]["x-tingyun"].split("#")[1].rstrip(";")
+        self.assertEqual(base64.b64decode(b64).decode(), f"{uid}_99tnew")
 
 
 class TestConfig(unittest.TestCase):

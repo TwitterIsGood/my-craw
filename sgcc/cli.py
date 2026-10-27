@@ -49,15 +49,21 @@ def cmd_balance(args):
 
 
 def cmd_refresh(args):
-    from . import login as lg
+    from . import offline
 
     path = _session_file(args)
-    token = lg.get_token()
-    if not token:
-        raise RuntimeError("未能从手机取到登录凭证")
-    lg.update_session(path, token)
+    try:
+        acct = api.fetch(api.load_session(path))
+        if not args.json:
+            print("凭证仍然有效，无需刷新")
+            print(f"session: {path}")
+        _show_account(acct, args.json)
+        return 0
+    except Exception:
+        pass
+    token = offline.login(path, code=args.code)
     if not args.json:
-        print(f"token: {token}")
+        print("凭证已过期，已通过短信重新登录")
         print(f"session: {path}")
     acct = api.fetch(api.load_session(path))
     _show_account(acct, args.json)
@@ -66,11 +72,17 @@ def cmd_refresh(args):
 
 def cmd_login(args):
     from . import login as lg
+    from . import offline
 
-    token = lg.do_login(force=args.force, code=args.code)
-    path = lg.update_session(config.session_path(args.session), token)
+    path = config.session_path(args.session)
+    if args.ui:
+        token = lg.do_login(force=args.force, code=args.code)
+        lg.update_session(path, token)
+    else:
+        offline.login(path, code=args.code)
+        if not args.json:
+            print("已通过短信验证码登录")
     if not args.json:
-        print(f"token: {token}")
         print(f"session: {path}")
     acct = api.fetch(api.load_session(path))
     _show_account(acct, args.json)
@@ -95,6 +107,7 @@ def cmd_doctor(args):
     path = config.session_path(args.session)
     check("session", lambda: (need(path.exists(), f"缺少 {path}"), str(path))[1])
     if path.exists():
+        check("session.expires", lambda: api.load_session(path).get("expires_at") or "未知", optional=True)
         check("balance", lambda: f"¥{api.fetch(api.load_session(path))['balance']:.2f}")
     # 服务器上只跑 balance 时，没有 adb / 手机是正常的
     check("adb", lambda: (need(shutil.which("adb"), "PATH 里没有 adb（只有 refresh/login 需要）"), shutil.which("adb"))[1], optional=True)
@@ -128,12 +141,14 @@ def build_parser():
     b.add_argument("--raw", action="store_true", help="打印解密后的原始响应")
     b.set_defaults(func=cmd_balance)
 
-    r = sub.add_parser("refresh", parents=[common], help="从手机读取新凭证写回 session")
+    r = sub.add_parser("refresh", parents=[common], help="凭证过期时用短信验证码重新登录（不连手机）")
+    r.add_argument("--code", help="短信验证码（不传则提示输入）")
     r.set_defaults(func=cmd_refresh)
 
-    l = sub.add_parser("login", parents=[common], help="一条龙：登录(如需) + 刷新 token + 验证")
-    l.add_argument("--force", action="store_true", help="清应用数据后强制重新登录")
-    l.add_argument("--code", help="短信验证码（仅在风控要求时）")
+    l = sub.add_parser("login", parents=[common], help="短信验证码登录并写入 session（不连手机）")
+    l.add_argument("--code", help="短信验证码（不传则提示输入）")
+    l.add_argument("--ui", action="store_true", help="改用 ADB 界面自动化登录（需要手机）")
+    l.add_argument("--force", action="store_true", help="配合 --ui：清应用数据后强制重新登录")
     l.set_defaults(func=cmd_login)
 
     d = sub.add_parser("doctor", parents=[common], help="环境自检")

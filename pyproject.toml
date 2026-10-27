@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sgcc-balance"
-version = "0.1.0"
+version = "0.2.0"
 description = "电费余额查询命令行工具：HTTP 查询 + ADB 自动刷新登录凭证"
 readme = "README.md"
 requires-python = ">=3.10"

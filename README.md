@@ -46,7 +46,7 @@ pip install -e .
 python -m sgcc balance        # 不安装也能用
 ```
 
-> 三个平台功能一致：`balance` 只依赖网络；`login` / `refresh` / `balance --ui` 另外要求 `adb` 在 PATH。
+> 三个平台功能一致，且都不需要连手机：`balance` 只依赖网络；`login` / `refresh` 会向你绑定的手机号发短信验证码；只有 `login --ui` / `balance --ui` 需要 `adb`。
 
 ## 命令
 
@@ -56,10 +56,10 @@ python -m sgcc balance        # 不安装也能用
 | `sgcc balance --json` | JSON 输出，便于脚本消费 |
 | `sgcc balance --raw` | 打印原始响应 |
 | `sgcc balance --ui` | 通过手机读取（约 20 秒） |
-| `sgcc refresh` | 刷新登录凭证 |
-| `sgcc login` | 完整登录流程并刷新凭证 |
-| `sgcc login --force` | 重置后重新登录 |
-| `sgcc login --code 123456` | 登录需要短信验证码时传入 |
+| `sgcc refresh` | 凭证过期时重新登录（短信验证码） |
+| `sgcc login` | 短信验证码登录并写入 `session.json` |
+| `sgcc login --code 123456` | 直接传入短信验证码（不交互） |
+| `sgcc login --ui` | 改用 ADB 界面自动化登录（需要手机） |
 | `sgcc doctor` | 环境自检 |
 
 通用参数：`--session PATH` 指定 session 文件，`--json` 输出 JSON。
@@ -69,14 +69,13 @@ python -m sgcc balance        # 不安装也能用
 `~/.sgcc/` 目录下：
 
 - `session.json` — 登录状态（含凭证，不要提交或外传）
-- `config.json` — 账号密码，仅 `sgcc login` 真正重登时使用
+- `config.json` — 手机号（`login` / `refresh` 发短信用；`--ui` 模式另外需要密码）
 - `crypto.json` — 客户端密钥，需自备（见下）
 
 ```json
 // ~/.sgcc/config.json
 {
-  "phone": "1xxxxxxxxxx",
-  "password": "your-password"
+  "phone": "1xxxxxxxxxx"
 }
 ```
 
@@ -84,7 +83,8 @@ python -m sgcc balance        # 不安装也能用
 
 - `SGCC_HOME`：配置目录，默认 `~/.sgcc`
 - `SGCC_SESSION`：session 文件完整路径
-- `SGCC_PHONE` / `SGCC_PASSWORD`：等价于 config.json
+- `SGCC_PHONE`：等价于 config.json 的 `phone`
+- `SGCC_PASSWORD`：仅 `--ui` 模式使用
 - `SGCC_CLIENT_PRIV`：客户端密钥（64 位 hex），见下节
 - `SGCC_INPUT_EV`：安全键盘输入设备，默认 `/dev/input/event1`
 
@@ -117,12 +117,13 @@ sgcc balance --json
 - 服务器时钟要准（请求带毫秒时间戳），建议开 NTP。
 - 需要能直连服务域名（不要走会改 `Host` / `Content-Length` 的反向代理）。
 
-登录状态会过期。过期后在连着手机的机器上跑 `sgcc refresh`，再把 `~/.sgcc/session.json` 同步过去即可：
+登录状态会过期。过期后在任意一台机器上跑 `sgcc refresh`（短信验证码登录），再把 `~/.sgcc/session.json` 同步过去即可：
 
 ```bash
-# cron：每小时试一次，失败就刷新并推给服务器
+# cron：每小时试一次；失败会等你输入短信验证码，所以别放在无人值守的 cron 里
 0 * * * * cd ~ && /usr/local/bin/sgcc balance --json >/dev/null || \
-  /usr/local/bin/sgcc refresh && rsync -az ~/.sgcc/session.json server:~/.sgcc/
+  /usr/local/bin/sgcc refresh --code "$(pass show sgcc-sms)" && \
+  rsync -az ~/.sgcc/session.json server:~/.sgcc/
 ```
 
 ## 开发与发布
