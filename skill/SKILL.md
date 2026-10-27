@@ -1,14 +1,14 @@
 ---
 name: sgcc
 description: >-
-  Query 网上国网 electricity balance and account info for the user's home meter.
+  Query electricity bill balance and account info for a home meter.
   Use when the user asks about 电费, 电量, 余额, 欠费, 交电费, "how much power
   credit is left", or when a previous balance query failed with an expired token.
 ---
 
-# 网上国网电费余额
+# 电费余额查询
 
-查询表内余额、可用余额与账单截止时间。
+查询余额、可用余额与账单截止时间。
 
 ## 快速使用
 
@@ -27,7 +27,7 @@ python entry.py login --code 123456   # 仅当风控要求短信验证码
 ./sgcc.exe balance --json        # Windows 二进制（等价）
 ```
 
-`balance --ui` 是兜底：连接手机操作 App 读取余额（约 20 秒），接口不通时再用。
+`balance --ui` 是兜底：通过手机读取余额（约 20 秒），接口不通时再用。
 
 ## 前置条件
 
@@ -45,7 +45,7 @@ python entry.py login --code 123456   # 仅当风控要求短信验证码
 
 ## 输出字段
 
-`balance`（分转元后的值）为表内余额；`available` 为可用余额；`as_of` 是账单截止时间。
+`balance`（分转元后的值）为账户余额；`available` 为可用余额；`as_of` 是账单截止时间。
 
 ## 注意
 

@@ -1,10 +1,10 @@
 # sgcc-balance
 
-网上国网电费余额命令行工具。查询自己户号的表内余额、可用余额和账单截止时间。
+电费余额查询命令行工具。查询自己户号的余额、可用余额和账单截止时间。
 
 ```
 $ sgcc balance
-表内余额  ¥0.00
+余额      ¥0.00
 户号      1234567890123
 地址      北京市某某区******101
 截止      2026年1月1日 00:00:00
@@ -55,7 +55,7 @@ python -m sgcc balance        # 不安装也能用
 | `sgcc balance` | 查询余额（默认） |
 | `sgcc balance --json` | JSON 输出，便于脚本消费 |
 | `sgcc balance --raw` | 打印原始响应 |
-| `sgcc balance --ui` | 连接手机操作 App 读取（约 20 秒） |
+| `sgcc balance --ui` | 通过手机读取（约 20 秒） |
 | `sgcc refresh` | 刷新登录凭证 |
 | `sgcc login` | 完整登录流程并刷新凭证 |
 | `sgcc login --force` | 重置后重新登录 |

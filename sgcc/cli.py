@@ -18,7 +18,7 @@ def _show_account(acct, as_json):
         _emit(acct, True)
         return
     bal = acct.get("balance")
-    print(f"表内余额  ¥{bal:.2f}" if bal is not None else "表内余额  未知")
+    print(f"余额      ¥{bal:.2f}" if bal is not None else "余额      未知")
     if acct.get("account_no"):
         print(f"户号      {acct['account_no']}")
     if acct.get("address"):
@@ -117,7 +117,7 @@ def build_parser():
 
     ap = argparse.ArgumentParser(
         prog="sgcc",
-        description="网上国网电费余额：纯 HTTP 查询，token 过期自动重新登录刷新。",
+        description="电费余额查询：凭证过期自动重新登录刷新。",
         epilog="示例: sgcc balance --json | sgcc login | sgcc refresh | sgcc doctor",
     )
     ap.add_argument("-V", "--version", action="version", version=f"sgcc {__version__}")
