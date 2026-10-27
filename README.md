@@ -26,7 +26,7 @@ Windows / Linux / macOS 任选一种：
 chmod +x sgcc-linux-x64 && ./sgcc-linux-x64 balance
 ```
 
-自己打包：`pip install -e ".[build]" && python build.py --exe` → `dist/sgcc(.exe)`。
+自己打包：`pip install -e ".[build]" && python pack.py --exe` → `dist/sgcc(.exe)`。
 打 tag（`v0.1.0`）会自动构建三平台二进制、发布 Release，并上传 PyPI。
 
 **2. pip / pipx / uv（推荐，随系统 Python）**
@@ -130,8 +130,8 @@ sgcc balance --json
 ```bash
 pip install -e ".[build,test]"
 python -m unittest discover -s tests -v   # 平台无关单测，CI 在 Linux/Windows/macOS 上跑
-python build.py --exe                     # 本地打包
-python build.py --sync-skill              # 同步到 ~/.claude/skills/sgcc
+python pack.py --exe                     # 本地打包
+python pack.py --sync-skill              # 同步到 ~/.claude/skills/sgcc
 ```
 
 发布：

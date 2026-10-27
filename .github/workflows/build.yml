@@ -41,7 +41,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -e ".[build]"
-      - run: python build.py --exe
+      - run: python pack.py --exe
       - name: Rename artifact
         shell: bash
         run: |

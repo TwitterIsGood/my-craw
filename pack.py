@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """打包 / 同步脚本。
 
-    python build.py --exe           # PyInstaller 单文件 -> dist/sgcc(.exe)
-    python build.py --sync-skill    # 把包同步进 ~/.claude/skills/sgcc/scripts
+    python pack.py --exe           # PyInstaller 单文件 -> dist/sgcc(.exe)
+    python pack.py --sync-skill    # 把包同步进 ~/.claude/skills/sgcc/scripts
 """
 
 import argparse
@@ -42,7 +42,7 @@ def sync_skill():
         HERE / "sgcc", pkg,
         ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
     )
-    for name in ("pyproject.toml", "README.md", "LICENSE", "build.py", "entry.py"):
+    for name in ("pyproject.toml", "README.md", "LICENSE", "pack.py", "entry.py"):
         shutil.copy2(HERE / name, dst / name)
     exe = HERE / "dist" / ("sgcc.exe" if sys.platform == "win32" else "sgcc")
     if exe.exists():
