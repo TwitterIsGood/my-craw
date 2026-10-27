@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+*.spec
+
+# 本地凭证 —— 绝不提交
+session.json
+config.json
+.sgcc/
+.sgcc_http_last
+*.db
+*.xml
+*.png
+.env
+probes/
